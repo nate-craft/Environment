@@ -210,7 +210,7 @@ if prompt "Do you want to install utilities like bluetooth, brightness control, 
     fi
 
     if prompt "Do you want to enable brightness permissions for the wheel user? This is necessary for brightness control."; then
-        echo "$UDEV_RULE" | sudo tee /etc/udev/rules.d/90-backlight.rules > /dev/null 2>&1
+        echo "$BRIGHTNESS_RULE" | sudo tee /etc/udev/rules.d/90-backlight.rules > /dev/null 2>&1
         sudo udevadm control --reload
         sudo udevadm trigger
     fi
@@ -351,7 +351,7 @@ if prompt "Installation complete. Would you like to clean up pre-installed files
 fi
 
 if prompt "Would you like to enable auto start with swaylock enabled?${NEW_LINE}This will automatically logout of any graphical environment"; then
-    if [ -e $SYSTEMD_FILE ]; then
+    if [ ! -f $SYSTEMD_FILE ]; then
         sudo mkdir -p "$SYSTEMD_DIR"
         sudo touch "$SYSTEMD_FILE"
         echo "$SYSTEMD_SWAY" | sudo tee "$SYSTEMD_FILE" > /dev/null 2>&1
