@@ -1,0 +1,76 @@
+#!/usr/bin/env sh
+
+# USB UUID for backing up
+
+USB="68FF-79C3"
+
+. ~/Env/globals.sh
+
+mkdir -p ~/Env/user/.config/
+mkdir -p ~/Env/system/
+mkdir -p ~/Env/system/fonts
+
+# config files to env 
+
+rsync -a --mkpath --ignore-missing-args ~/.config/mimeapps.list ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/electron-flags.conf ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/tmux ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/nvim ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/helix ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/yazi ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/fish ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/yt-dlp ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/FreeTube \
+    --exclude "Cache/" \
+    --exclude "**/LOG" \
+    --exclude "**/LOG.old" \
+    --exclude "SingletonSocket" \
+    --exclude "SingletonCookie" \
+    --exclude "SingletonLock" \
+    --exclude "Network Persistent State" \
+    --exclude "subscription-cache.db" \
+    --exclude "DawnGraphiteCache" \
+    --exclude "DawnWebGPUCache" \
+    --exclude "GPUCache" \
+    --exclude "Code Cache" \
+    --exclude "player_cache" \
+    ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/calibre \
+    --exclude "viewer-webengine.json" \
+    --exclude "dynamic.pickle.json" \
+    --exclude "global.py.json" \
+    --exclude "gui.json" \
+    ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/mpv ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/sway ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/waybar ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/rofi ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/dunst ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/gammastep ~/Env/user/.config/
+
+# system files to env
+
+rsync -a --mkpath --ignore-missing-args /etc/fonts/local.conf ~/Env/system/fonts/
+
+# backs up any data stored locally to Github
+
+(
+    cd ~/Env/
+    git add .
+    git commit -m "$(date --rfc-3339 s)"
+    git push origin main
+)
+ 
+# backs up any data stored locally to USB
+
+if lsblk -o UUID | rg -q "$USB"; then
+    rsync -rltD --mkpath --no-links --modify-window=2 --partial --info=progress2 ~/Documents /mnt/drive/
+    rsync -rltD --mkpath --no-links --modify-window=2 --partial --info=progress2 ~/Music /mnt/drive/
+    rsync -rltD --mkpath --no-links --modify-window=2 --partial --info=progress2 ~/Photos /mnt/drive/
+    rsync -rltD --mkpath --no-links --modify-window=2 --partial --info=progress2 ~/Env /mnt/drive/
+else
+    msg_err "USB ${USB} not available. Not backing up to external drive..."    
+fi
+
+
+

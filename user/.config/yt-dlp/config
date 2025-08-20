@@ -1,0 +1,22 @@
+# format
+-f bv*[height<=1080]+ba
+--merge-output-format mkv
+
+# metadata
+--embed-chapters
+--sponsorblock-mark all
+--embed-metadata
+--embed-thumbnail
+--add-metadata
+--embed-subs
+--sub-lang en
+--progress
+--hls-use-mpegts
+
+# efficiency
+--no-check-certificate
+--no-playlist
+--geo-bypass
+--youtube-skip-dash-manifest
+--http-chunk-size=10M
+--downloader aria2c -N 32

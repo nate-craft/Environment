@@ -1,0 +1,128 @@
+#!/usr/bin/sh
+
+# Variables
+
+MAX_VOLUME=150
+NOTIFY_ID=9999
+
+volume=0
+alerting=0
+
+. ~/Env/globals.sh
+
+# Functions
+
+get_volume() {
+    volume=$(pactl get-sink-volume @DEFAULT_SINK@ | awk '{print $5}' | tr -d '%' | tr -d '\n')
+}
+
+set_volume() {
+    if [ "$1" -gt "$MAX_VOLUME" ]; then
+        pactl set-sink-volume @DEFAULT_SINK@ "${MAX_VOLUME}%"
+        alert "Volume" "${MAX_VOLUME}%"
+    elif [ "$1" -lt 0 ]; then
+        pactl set-sink-volume @DEFAULT_SINK@ "0%"
+        alert "Volume" "0%"
+    else
+        pactl set-sink-volume @DEFAULT_SINK@ "${1}%"
+        alert "Volume" "${1}%"
+    fi
+}
+
+alert() {
+    if [ "$alerting" = 1 ]; then
+        notify-send -r "$NOTIFY_ID" "$1" "$2"
+    fi
+}
+
+help() {
+    printf "\n"
+    help_title "Volume Controller"
+    help_content "Usage:"
+    help_content "    volume [--alert] --get        Gets volume"
+    help_content "    volume [--alert] --set #      Sets volume as a percentage of 100"
+    help_content "    volume [--alert] --add #      Adds volume as increments of a percentage of 100"
+    help_content "    volume [--alert] --sub #      Subs volume as increments of a percentage of 100"
+    help_content "    volume [--alert] --mute       Mutes current audio sink"
+    help_content "    volume [--alert] --mute-mic   Mutes current audio source"
+    help_content ""
+    help_content "Extra Flags:"
+    help_content "    --alert             Sends alert via libnotify"
+    printf "\n"   
+}
+
+
+# Flow
+
+if [ "$1" = "--help" ]; then
+    help
+    exit 0
+fi
+
+if [ "$1" = "--alert" ]; then
+    alerting=1
+    shift
+fi
+
+# Mutes
+
+if [ "$1" = "--mute" ]; then
+    if [ "$(pactl get-sink-mute @DEFAULT_SINK@)" = "Mute: yes" ]; then
+        pactl set-sink-mute @DEFAULT_SINK@ 0
+        get_volume
+        alert "Volume" "${volume}%"
+    else
+        pactl set-sink-mute @DEFAULT_SINK@ 1
+        alert "Volume" "Muted"
+    fi
+    exit 0
+fi
+
+if [ "$1" = "--mute-mic" ]; then
+    if [ "$(pactl get-source-mute @DEFAULT_SOURCE@)" = "Mute: yes" ]; then
+        pactl set-source-mute @DEFAULT_SOURCE@ 0
+        alert "Microphone" "Enabled"
+    else
+        pactl set-source-mute @DEFAULT_SOURCE@ 1
+        alert "Microphone" "Disabled"
+    fi
+    exit 0
+fi
+
+# Get 
+
+if [ "$1" = "--get" ]; then
+    get_volume
+    msg "Volume: ${YELLOW} ${volume}%"
+    alert "Volume" "${volume}%"
+    exit 0
+fi
+
+# Volume control
+
+if [ -z "$2" ]; then
+    alert "Error" "No valid volume given"
+    msg_err "A valid volume must be given!"
+    exit 1
+fi
+
+if [ "$1" = "--set" ]; then
+    set_volume "$2"
+    exit 0    
+fi
+
+if [ "$1" = "--add" ]; then
+    get_volume
+    new_volume=$(echo "${volume} + ${2}" | bc)
+    set_volume "$new_volume"
+    exit 0
+fi
+
+if [ "$1" = "--sub" ]; then
+    get_volume
+    new_volume=$(echo "${volume} - ${2}" | bc)
+    set_volume "$new_volume"
+    exit 0
+fi
+
+help

@@ -1,0 +1,11 @@
+[Default Applications]
+application/pdf=org.pwmt.zathura.desktop
+image/png=imv.desktop
+image/jpeg=imv.desktop
+image/gif=imv.desktop
+image/heic=imv.desktop
+image/webp=imv.desktop
+image/tiff=imv.desktop
+image/bmp=imv.desktop
+image/x-icon=imv.desktop
+application/lrf=calibre-lrfviewer.desktop

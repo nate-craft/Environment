@@ -1,0 +1,30 @@
+#!/usr/bin/env sh
+
+. ~/Env/globals.sh
+
+if [ "$1" = "--help" ]; then
+    printf "\n"
+    help_title "cargo-update"
+    help_content "  cargo-update --filter [packages]      updates cargo packages except given filters"
+    help_content "  cargo-update                          updates all cargo packages"
+    printf "\n"
+    exit 1
+fi
+
+FILTERED=""
+if [ "$1" = "--filter" ]; then
+    shift
+    FILTERED="$*"
+    msg "Skipping ${FILTERED}..."
+fi
+
+for package in $(cargo install --list | rg -v "github.com" | awk 'NR % 2 == 0' | tr -d " "); do
+    if [ "$package" != "" ] && [ "$package" != "$NEW_LINE" ]; then
+        if ! echo "$FILTERED" | rg "$package" >/dev/null; then
+            cargo install "$package" --color always 2>&1
+            updated=$((updated+1))
+        fi
+    fi
+done
+
+msg "All crates now up to date!"

@@ -1,0 +1,21 @@
+[language-server]
+clangd = { command = "clangd", args = [ "--clang-tidy" ] }
+rust-analyzer = { command = "rust-analyzer" }
+
+[[language]]
+name = "c"
+file-types = ["c", "h"]
+indent = { tab-width = 4, unit = "    " }
+auto-format = true
+soft-wrap.enable = false
+
+[[language]]
+name = "bash"
+file-types = ["sh"]
+indent = { tab-width = 4, unit = "    " }
+
+[[language]]
+name = "rust"
+formatter = { command = "rustfmt" }
+auto-format = true
+

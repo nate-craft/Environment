@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+if ! tmux has-session -t home 2> /dev/null; then
+    tmux new-session -s home -n   -d
+    tmux new-window -t home:2 -n 
+    tmux new-window -t home:3 -n 󰍡
+    tmux new-window -t home:4 -n 
+    tmux new-window -t home:5 -n 
+fi
+
+tmux attach -t home

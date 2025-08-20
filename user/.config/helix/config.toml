@@ -1,0 +1,21 @@
+theme = "gruvbox"
+
+[editor]
+true-color = true
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "bar"
+select = "block"
+
+[editor.statusline]
+mode.normal = "NORMAL"
+mode.insert = "INSERT"
+mode.select = "SELECT"
+left = ["mode", "file-base-name", "read-only-indicator", "file-modification-indicator"]
+right = ["diagnostics"]
+
+[editor.soft-wrap]
+enable = true
+max-wrap = 25
+wrap-indicator = ""

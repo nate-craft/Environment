@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+INPUT=$(rofi -dmenu -theme calc)
+
+[ -z "$INPUT" ] && exit 1
+
+if echo "$INPUT" | rg -q '^!'; then
+    librewolf "https://duckduckgo.com/?t=h_&q=${INPUT}&ia=web" & # shebang search
+elif echo "$INPUT" | rg -q '^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(/.*)?$'; then
+    librewolf "$INPUT" & # exact url
+else
+    librewolf "https://duckduckgo.com/?t=h_&q=${INPUT}&ia=web" & # search query
+fi 2>&1
+
+

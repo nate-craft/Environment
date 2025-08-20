@@ -1,0 +1,26 @@
+#!/usr/bin/env sh
+
+INSTALLED="$(flatpak list --app --columns=application | grep -v "Application ID")"
+LOCAL_VAR_DIRS=$(ls ~/.var/app/)
+DELETED=""
+I=0
+
+for APP in $LOCAL_VAR_DIRS; do
+    OUTPUT=$(echo "$INSTALLED" | grep "$APP" | wc -w)
+    if [ "$OUTPUT" = "0" ]; then
+        DELETED="$DELETED $APP"
+        I=$((I + 1))
+    fi
+done
+
+if [ "$I" -gt 0 ]; then
+    printf "%d Deleted app leftovers(s):\n" "$I"
+    for DELETED_APP in $DELETED; do
+        rm -rf ~/.var/app/"$DELETED_APP"
+        rm -rf ~/.local/share/flatpak/app/"$DELETED_APP"
+        sudo rm -rf /var/lib/flatpak/app/"$DELETED_APP"
+        printf "%s\n" "$DELETED_APP"
+    done
+else
+    printf "Flatpak directories cleaned!\n"
+fi

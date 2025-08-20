@@ -1,0 +1,122 @@
+# Login 
+
+exec swaylock -f -c 373738
+
+# Input
+
+set $mod Mod4
+input * xkb_options "ctrl:swap_lalt_lctl"
+
+bindsym $mod+Return exec foot
+bindsym $mod+Shift+e exec swaynag -t warning -m 'Logout?' -B 'Yes, exit sway' 'swaymsg exit'
+bindsym $mod+Shift+r reload, exec pkill waybar && waybar
+bindsym $mod+Shift+f floating toggle
+
+bindsym Ctrl+space exec rofi -show drun -theme theme
+bindsym Ctrl+Shift+space exec "~/Env/scripts/mathprompt"
+bindsym Ctrl+Shift+s exec "~/Env/scripts/search"
+
+bindsym Ctrl+Shift+b exec "~/Env/scripts/bookmark --copy"
+bindsym $mod+Shift+b exec "~/Env/scripts/bookmark --new"
+bindsym Print exec grim -g "$(slurp -d)" - | wl-copy
+bindsym Ctrl+Print exec "~/Env/scripts/capture_window"
+
+input "type:touchpad" {
+      dwt enabled
+      tap enabled
+      click_method clickfinger
+      middle_emulation enabled
+}
+
+focus_on_window_activation focus
+
+bindgesture swipe:right workspace next
+bindgesture swipe:left workspace prev
+
+bindsym --locked XF86AudioRaiseVolume exec "~/Env/scripts/audio --alert --add 5"
+bindsym --locked XF86AudioLowerVolume exec "~/Env/scripts/audio --alert --sub 5"
+bindsym --locked XF86AudioMute exec "~/Env/scripts/audio --mute"
+bindsym --locked XF86AudioMicMute exec "~/Env/scripts/audio --alert --mute-mic"
+bindsym --locked XF86MonBrightnessUp exec "~/Env/scripts/backlight --alert --add 5"
+bindsym --locked XF86MonBrightnessDown exec "~/Env/scripts/backlight --alert --sub 5"
+bindsym XF86Bluetooth exec "~/Env/scripts/bluetooth"
+focus_follows_mouse no
+
+# Output 
+
+output eDP-1 mode 1920x1080 scale 1 position 0,0 enable
+output HDMI-A-1 mode 1920x1080 scale 1 position 0,0 enable
+
+# Running
+
+exec gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3-dark'
+exec gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
+exec dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK
+
+exec foot
+exec "~/Env/scripts/powerstatus"
+exec swayidle -w \
+      timeout 900 'swaylock -f -c 373738' \
+      timeout 1200 'swaymsg "output * power off"' resume 'swaymsg "output * power on"' \
+      before-sleep 'swaylock -f -c 373738'
+exec gammastep
+exec dunst
+exec waybar
+
+for_window [class=".*"] inhibit_idle fullscreen
+for_window [app_id=".*"] inhibit_idle fullscreen
+
+# Appearance
+
+default_border pixel 0
+default_floating_border pixel 0
+for_window [title="^.*"] title_format ""
+font pango:JetBrainsMono Nerd Font 14
+titlebar_border_thickness 0
+titlebar_padding 0
+swaybg_command -
+
+client.focused #304934 #304934 #304934 #304934
+
+# gaps inner 4
+# gaps outer 4
+
+for_window [window_role="pop-up"] floating enable
+for_window [window_role="dialog"] floating enable
+for_window [window_type="dialog"] floating enable
+for_window [window_type="utility"] floating enable
+for_window [window_type="splash"] floating enable
+for_window [title="Picture in picture" app_id=".*"] floating enable, sticky enable
+for_window [title="Picture-in-Picture" app_id=".*"] floating enable, sticky enable
+
+assign [app_id="foot"] workspace 1
+assign [app_id="firefox"] workspace 2
+assign [app_id="librewolf"] workspace 2
+assign [class="FreeTube"] workspace 3 # xwayland
+assign [app_id="FreeTube"] workspace 3
+
+# Navigation
+
+bindsym Ctrl+1 workspace 1
+bindsym Ctrl+2 workspace 2
+bindsym Ctrl+3 workspace 3
+bindsym Ctrl+4 workspace 4
+
+bindsym Ctrl+Shift+1 move container to workspace 1; workspace 1
+bindsym Ctrl+Shift+2 move container to workspace 2; workspace 2
+bindsym Ctrl+Shift+3 move container to workspace 3; workspace 3
+bindsym Ctrl+Shift+4 move container to workspace 4; workspace 4
+
+bindsym Ctrl+j workspace prev
+bindsym Ctrl+k workspace next
+
+bindsym $mod+Shift+j move left
+bindsym $mod+Shift+k move right
+
+bindsym $mod+j focus left
+bindsym $mod+k focus right
+bindsym Ctrl+Tab workspace next
+bindsym Ctrl+Shift+Tab workspace prev
+
+bindsym $mod+f fullscreen toggle
+bindsym Ctrl+q kill

@@ -1,0 +1,24 @@
+#!/usr/bin/env sh
+
+FILE="${HOME}/Env/bookmarks.txt"
+
+if [ "$1" = "--copy" ]; then
+    INPUT=$(< "$FILE" rofi -dmenu -theme theme)
+    CLEAN="${INPUT%%#*}"
+    wl-copy "$CLEAN"
+elif [ "$1" = "--new" ]; then
+    BOOKMARK=$(wl-paste --primary)
+    CLEAN="${BOOKMARK%%#*}"
+    if [ -z "$BOOKMARK" ]; then
+        notify-send -r 9999 "Invalid New Bookmark" "$CLEAN"
+        exit 1
+    elif grep -q "$BOOKMARK" "$FILE"; then
+        notify-send -r 9999 "Duplicate Bookmark" "$CLEAN"
+        exit 1
+    fi
+    echo "$BOOKMARK" >> "$FILE"
+    notify-send "Added New Bookmark" "$CLEAN"
+else
+    printf "Usage: bookmark.sh [--new, --copy] <bookmark> \n"
+fi
+

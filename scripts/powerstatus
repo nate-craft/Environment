@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+if pidof -o %PPID -x "powerstatus" > /dev/null; then
+    exit 0
+fi
+
+while true; do
+    CAPACITY="$(cat /sys/class/power_supply/BAT0/capacity)"
+    PLUGGED="$(cat /sys/class/power_supply/AC/online)"
+
+    if [ "$PLUGGED" != "1" ] && [ "$CAPACITY" -lt 20 ]; then
+        notify-send -r 9999 'Low Battery' "$(cat /sys/class/power_supply/BAT0/capacity)%"
+    fi        
+    sleep 300s
+done

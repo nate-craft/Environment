@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+ACTIVE=$(systemctl is-active "bluetooth")
+
+if [ "$1" = "--status" ]; then
+    notify-send -r 9999 "Bluetooth" "${ACTIVE}"
+elif [ "$1" = "--on" ] || [ "$ACTIVE" = "inactive" ]; then
+    notify-send -r 9999 "Bluetooth" "On"
+    systemctl start bluetooth.service
+    rfkill unblock bluetooth
+elif [ "$1" = "--off" ] || [ "$ACTIVE" = "active" ]; then
+    notify-send -r 9999 "Bluetooth" "Off"
+    systemctl stop bluetooth.service
+fi

@@ -1,0 +1,31 @@
+#!/usr/bin/env sh
+
+. ~/Env/globals.sh
+
+if [ "$1" = "--help" ]; then
+    printf "\n"
+    help_title "Nightshift"
+    help_content "Usage:"
+    help_content "    nightshift --status    Shows status of current nightsihft"
+    help_content "    nightshift             Toggles nightshift mode via gammastep"
+    printf "\n"
+    exit 0
+fi
+
+if [ "$1" = "--status" ]; then
+    if [ $(pgrep -x "gammastep") ]; then
+        echo "Nightshift enabled"
+    else
+        echo "Nightshift disabled"
+    fi    
+    exit 0
+fi
+
+if [ $(pgrep -x "gammastep") ]; then
+    pkill -x "gammastep"
+    notify-send -r 9999 "Nightshift" "Off"
+else
+    exec gammastep > /dev/null 2>&1 &
+    notify-send -r 9999 "Nightshift" "On"
+fi
+

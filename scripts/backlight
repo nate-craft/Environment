@@ -1,0 +1,154 @@
+#!/usr/bin/env sh
+
+# --- Variables Start
+
+# Set to  0 to disable rounding
+NEAREST_DISPLAY_ROUND=5
+NOTIFY_ID=9999
+BRIGHTNESS_MIN=1
+
+alerting=0
+brightness=0
+brightness_max=0
+brightness_percent=0
+
+. ~/Env/globals.sh
+
+# --- Variables End
+
+# --- Functions Start
+
+round_nearest() {
+    if [ "$NEAREST_DISPLAY_ROUND" = 0 ]; then
+        echo "$1"
+        return 0
+    fi
+
+    rounded=$(( ($1 + 2) / NEAREST_DISPLAY_ROUND * NEAREST_DISPLAY_ROUND ))
+
+    if [ "$rounded" -gt 100 ]; then
+        echo 100
+    else
+        echo "$rounded"
+    fi
+}
+
+get_brightness() {
+    brightness=$(cat /sys/class/backlight/intel_backlight/brightness)
+}
+
+get_max_brightness() {
+    brightness_max=$(cat /sys/class/backlight/intel_backlight/max_brightness)
+}
+
+get_brightness_percent() {
+    brightness_percent=$(echo "scale=4; ${brightness} / ${brightness_max} * 100" | bc -l | cut -d '.' -f1)
+    brightness_percent=$(round_nearest "$brightness_percent")
+}
+
+set_brightness() {
+    if [ "$1" -ge "$brightness_max" ]; then
+        echo "$brightness_max" | tee "/sys/class/backlight/intel_backlight/brightness" > /dev/null
+        alert "Brightness" "100%"
+    elif [ "$1" -le 1 ]; then
+        echo "$BRIGHTNESS_MIN" | tee "/sys/class/backlight/intel_backlight/brightness" > /dev/null
+        alert "Brightness" "Minimum"
+    else
+        echo "$1" | tee "/sys/class/backlight/intel_backlight/brightness" > /dev/null
+        alert "Brightness" "${2}%"
+    fi
+}
+
+alert() {
+    if [ "$alerting" = 1 ]; then
+        notify-send -r "$NOTIFY_ID" "$1" "$2"
+    fi
+}
+
+help() {
+    printf "\n"
+    help_title "Brightness Controller"
+    help_content "Usage:"
+    help_content "    backlight [--alert] --get        Gets backlight brightness"
+    help_content "    backlight [--alert] --set #      Sets backlight brightness as a percentage of 100"
+    help_content "    backlight [--alert] --add #      Adds backlight brightness as increments of a percentage of 100"
+    help_content "    backlight [--alert] --sub #      Subs backlight brightness as increments of a percentage of 100"
+    help_content ""
+    help_content "Extra Flags:"
+    help_content "    --alert             Sends alert via libnotify"
+    printf "\n"   
+}
+
+# --- Functions End
+
+if [ "$1" = "--help" ]; then
+    help
+    exit 0
+fi
+
+if [ "$1" = "--alert" ]; then
+    alerting=1
+    shift
+fi
+
+# --- Init Start
+
+get_brightness
+get_max_brightness
+get_brightness_percent
+
+# --- Init End
+
+# --- Getters Start
+
+if [ "$1" = "--get" ]; then
+    msg "Brightness: ${YELLOW} ${brightness_percent}%"
+    alert "Brightness" "${brightness_percent}%"
+    exit 0
+fi
+
+# --- Getters End
+
+# --- Setters Start
+
+if [ -z "$2" ]; then
+    alert "Error" "No valid brightness given"
+    msg_err "A valid brightness must be given!"
+    exit 1
+fi
+
+if [ "$2" -lt 0 ]; then
+    alert "Error" "Brightness cannot be negative"
+    msg_err "A non-negative brightness must be given!"
+    exit 1
+fi
+
+if [ "$1" = "--set" ]; then
+    new_brightness=$(echo "scale=4; (${2} / 100.0) * ${brightness_max}" | bc -l | cut -d '.' -f1)
+    new_percent=$(round_nearest "$new_percent")
+    set_brightness "$new_brightness" "$new_percent"
+    exit 0    
+fi
+
+if [ "$1" = "--add" ]; then
+    new_brightness=$(echo "scale=4; ((${2} / 100.0) * ${brightness_max}) + ${brightness}" | bc -l | cut -d '.' -f1)
+    new_percent=$(echo "${brightness_percent} + ${2}" | bc)
+    new_percent=$(round_nearest "$new_percent")
+    set_brightness "$new_brightness" "$new_percent"
+    exit 0
+fi
+
+if [ "$1" = "--sub" ]; then
+    new_brightness=$(echo "scale=2; ${brightness} - ((${2} / 100.0) * ${brightness_max})" | bc -l)
+    new_brightness=$(echo "scale=0; $new_brightness / 1" | bc -l)
+    new_percent=$(echo "${brightness_percent} - ${2}" | bc)
+    new_percent=$(round_nearest "$new_percent")
+    set_brightness "$new_brightness" "$new_percent"
+    exit 0
+fi
+
+# --- Setters End
+
+# If no command used, print help 
+
+help

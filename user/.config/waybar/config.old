@@ -1,0 +1,91 @@
+{
+    "height": 25, 
+    "spacing": 4, 
+    "modules-left": [
+        "sway/workspaces",
+    ],
+    "modules-center": [],
+	"modules-center": [
+		"clock#1",
+		"clock#2",
+		"clock#3",
+	],
+    "modules-right": [
+		"pulseaudio",
+        "battery",
+		"custom/bluetooth",
+		"custom/network",
+    ],
+	"sway/workspaces": {
+		"active-only": false,
+		"disable-scroll": true,
+		"all-outputs": true,
+		"persistent-workspaces": {
+			"1": [],
+			"2": [],
+			"3": [],
+			"4": [],
+		},		
+		"format": "{icon}",
+		"format-icons": {
+		  "1": "",
+		  "2": "",
+		  "3": "󰐍",
+		  "4": "󰇧",
+		}
+	},
+	"pulseaudio": {
+		"format": "{icon}  {volume:2}%",
+		"format-bluetooth": "{icon}  {volume}%",
+		"format-muted": "MUTE",
+		"format-icons": {
+			"headphones": "",
+			"default": [
+				"",
+				""
+			]
+		},
+	    "tooltip": false
+	},
+	"custom/network": {
+		"exec": "~/.config/waybar/wifi.sh",
+	    "interval": 5,
+	    "tooltip": false
+	},
+	"custom/bluetooth": {
+	    "exec": "~/.config/waybar/bluetooth.sh",
+	    "interval": 5,
+	    "tooltip": false
+	},
+	"clock#1": {
+		"format": "{:%a}",
+		"tooltip": false
+	},
+	"clock#2": {
+		"format": "{:%H:%M}",
+		"tooltip": false
+	},
+	"clock#3": {
+		"format": "{:%m-%d}",
+		"tooltip": false
+	},
+    "battery": {
+        "tooltip": false,
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+		"format-alt": "{capacity}%",
+        "format": " {capacity}%",
+        "format-discharging": "{icon}  {capacity}%",
+        "format-icons": [
+            "", 
+            "", 
+            "", 
+            "", 
+            ""
+        ],
+        "on-click": "",
+        "on-hover": "",
+    },
+}

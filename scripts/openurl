@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+
+if [ -z "$1" ]; then
+    notify-send "Link" "No URL provided!" &
+    exit 1
+fi
+
+VIDEO="$(echo "$1" | grep -E '\.(gif|mkv|mp4|mp3|avi|mov|flv|wmv|wav|aac|ogg|m4a|mkv|MOV)$')"
+PIC="$(echo "$1" | grep -E '\.(png|jpg|jpeg|webp|bmp|tiff|svg|JPG)$')"
+YT="$(echo "$1" | grep -E 'youtube.com|youtu.be')"
+
+if [ -n "$VIDEO" ]; then
+    mpv "$1" &
+elif [ -n "$PIC" ]; then
+    imv "$1" &
+elif [ -n "$YT" ]; then
+    freetube "$YT" &
+else 
+    librewolf "$1" &
+fi

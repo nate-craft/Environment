@@ -1,0 +1,54 @@
+#!/usr/bin/env sh
+
+. ~/Env/globals.sh
+
+help() {
+    printf "\n"
+    help_title "Music Player"
+    help_content "Usage:"
+    help_content "    play /path/to/song.mp3         Plays songs by exact path"
+    help_content "    play \"query\"                   Plays songs by song title query"
+    help_content "    play --artist \"query\"          plays songs by artist name query"
+    printf "\n"
+}
+
+if [ -z "$1" ] || [ "$1" = "--help" ]; then
+    help
+    exit 1
+fi
+
+if [ -f "$1" ]; then
+    clear
+    mpv --no-video "$1"
+else
+    search="$1"
+    if [ "$1" = "--artist" ]; then
+        results=$(fd --type directory "$2" ~/Music/)
+        search="$2"
+    else 
+        results=$(fd "$1" ~/Music/)
+    fi
+
+    if [ "$results" != "" ]; then
+        mpv_args=""
+        while read -r line; do
+            if [ "$1" = "--artist" ] && [ -d "$line" ] || [ -f "$line" ]; then
+                mpv_args="${mpv_args} \"${line}\""
+                echo "here"
+            fi
+        done <<EOF
+$results
+EOF
+        if [ "$mpv_args" != "" ]; then
+            clear
+            printf "%s" "$mpv_args" | xargs mpv --no-video --no-resume-playback --display-tags-clr --msg-level=all=no
+        else
+            msg_err "No songs by the search query \"${search}\" could be found"
+            help
+        fi
+    else
+        msg_err "No song by the name \"${search}\" could be found"
+        help
+    fi
+fi
+

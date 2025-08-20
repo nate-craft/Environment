@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+
+INPUT=$(rofi -dmenu -theme calc)
+
+if $INPUT; then
+    exit 0
+fi
+
+RESULT=$(echo "scale=3;$INPUT" | bc --standard 2>&1)
+CHARS=$(echo "$INPUT" | wc -m)
+
+if echo "$RESULT" | rg -q "Error" || [ "$CHARS" -lt 3 ]; then
+    notify-send -r 9999 "Bad Input: '${INPUT}'"   
+elif echo "$RESULT" | rg -q "error"; then
+    notify-send -r 9999 "Bad Syntax: '${INPUT}'"
+else
+    notify-send -r 9999 "${RESULT}"
+    wl-copy "$RESULT"
+fi
+

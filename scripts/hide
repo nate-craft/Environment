@@ -1,0 +1,57 @@
+#!/usr/bin/env sh
+
+. ~/Env/globals.sh
+
+help() {
+    printf "\n"
+    help_title "Desktop File Hiding"
+    help_content "Usage:"
+    help_content "    hide /path/to/app.desktop            Adds the NoDisplay=true tag to the given desktop file"
+    help_content "    hide --dry-run /path/to/app.desktop  Shows what files will be modified"
+    help_content "    hide /path/to/prefix*                Adds the NoDisplay=true tag many desktop files"
+    printf "\n"
+}
+
+if [ -z "$1" ] || [ "$1" = "--help" ]; then
+    help
+    exit 1
+fi
+
+dry_run=0
+
+if [ "$1" = "--dry-run" ]; then
+    msg "Running hide as a dry run..."
+    dry_run=1
+    shift
+fi
+
+for file in "$@"; do
+    if ! [ -f "$file" ]; then
+        msg_err "${file} does not exist!"        
+        continue
+    fi
+
+    if ! rg -q "[Desktop Entry]" "$file"; then
+        msg_err "${file} is not a valid '.desktop' file"
+        continue
+    fi
+
+    if rg -qN "NoDisplay=true" "$file"; then
+        msg_err "${file} already has the NoDisplay tag!"
+        continue
+    elif rg -qN "NoDisplay=false" "$file"; then
+        if [ $dry_run -eq 0 ]; then
+            sudo sed -i "s/NoDisplay=false/NoDisplay=true/g" "$file"
+            msg "${file} is now hidden"
+        else
+            msg "${file} would be hidden"
+        fi
+    else 
+        if [ $dry_run -eq 0 ]; then
+            sudo sed -i '/\[Desktop Entry\]/aNoDisplay=true' "$file"
+            msg "${file} is now hidden"
+        else
+            msg "${file} would be hidden"
+        fi
+    fi
+done
