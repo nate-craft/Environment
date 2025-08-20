@@ -47,10 +47,10 @@ prompt() {
 }
 
 ask() {
-    args="$@"
-    printf "\n%s%s%s:\n" "$YELLOW" "$args" "$RESET"
-    read -r answer
-    echo "$answer"
+    args="$2"
+    printf "\n%s%s%s:\n" "$YELLOW" "$args" "$RESET"    
+    read -r "ask_variable"
+    eval "$1=\"$ask_variable\""
 }
 
 msg_err() {

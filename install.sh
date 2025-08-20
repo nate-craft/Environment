@@ -39,6 +39,10 @@ RFKILL_RULE='polkit.addRule(function(action, subject) {
         return polkit.Result.YES;
     }
 });'
+BRIGHTNESS_RULE='
+ACTION=="add", SUBSYSTEM=="backlight", KERNEL=="intel_backlight", RUN+="/bin/chgrp wheel /sys/class/backlight/%k/brightness"
+ACTION=="add", SUBSYSTEM=="backlight", KERNEL=="intel_backlight", RUN+="/bin/chmod g+w /sys/class/backlight/%k/brightness"
+'
 SYSTEMD_DIR="/etc/systemd/system/getty@tty1.service.d/"
 SYSTEMD_FILE="/etc/systemd/system/getty@tty1.service.d/override.conf"
 SYSTEMD_SWAY="[Service]
@@ -104,6 +108,11 @@ if ! prog_exists sway; then
         swaylock \
         polkit \
         foot \
+        bat \
+        ripgrep \
+        fd \
+        libnotify \
+        bc \
         wl-clipboard \
         networkmanager \
         tmux \
@@ -123,10 +132,12 @@ fi
 # git
 
 if prompt "Do you want to configure your Git settings?"; then
-    username="$(ask "What is your Git username?")"
-    email="$(ask "What is your Git email?")"
+    ask "username" "What is your Git username?"
     git config --global user.name "$username"
+    msg "Username set as ${username}"
+    ask "email" "What is your Git email?"
     git config --global user.email "$email"
+    msg "Email set as ${email}"
     git config --global init.defaultBranch main
 fi
 
@@ -139,18 +150,10 @@ if prompt "Do you want to install shell programs?"; then
         sudo ln -sf /bin/dash /bin/sh
     fi
 
-    if prompt "Do you want to install zsh as an interactive shell?"; then
-        sudo pacman -S --needed zsh zsh-syntax-highlighting
-        command -v zsh | sudo tee -a /etc/shells > /dev/null 2>&1
-        chsh -s "$(command -v zsh)"
-    	. ~/.zshenv
-    	. ~/.config/zsh/.zprofile
-    	. ~/.config/zsh/.zshrc
-    elif prompt "Do you want to install fish as the interative shell?"; then
+    if prompt "Do you want to install fish as the interative shell?"; then
         sudo pacman -S --needed fish
         command -v fish | sudo tee -a /etc/shells > /dev/null 2>&1
         chsh -s "$(command -v fish)"
-        . ~/.config/fish/config.fish
     fi
 fi
 
@@ -162,7 +165,7 @@ if prompt "Do you enable local data syncing?"; then
 
     if prompt "Do you want to install '~/.config', '~/', and '/etc/' configuration files?"; then
         cp -pr "${ENV}/user/." "$ME"
-        sudo cp -pr "${ENV}/system/." "/etc/"
+        sudo sudo cp -pr "${ENV}/system/." "/etc/" # sudo necessary to maintain root permissions
         chmod +x -R "${ME}/.config/waybar/"
     fi
 
@@ -178,7 +181,7 @@ if prompt "Do you enable local data syncing?"; then
         sudo systemctl daemon-reload
         sudo systemctl restart mnt-drive.automount
 
-        if lsblk -o UUID | rg -q "$USB"; then
+        if lsblk -o UUID | grep -q "$USB"; then
             rsync -a --mkpath --partial --ignore-missing-args --info=progress2 "$USB_MOUNT_DIR"/Documents ~/
             rsync -a --mkpath --partial --ignore-missing-args --info=progress2 "$USB_MOUNT_DIR"/Music ~/
             rsync -a --mkpath --partial --ignore-missing-args --info=progress2 "$USB_MOUNT_DIR"/Photos ~/
@@ -190,7 +193,7 @@ fi
 
 # utilities
 
-if prompt "Do you want to install utilities like bluetooth, printing, and battery management?"; then
+if prompt "Do you want to install utilities like bluetooth, brightness control, printing, and battery management?"; then
 
     # polkit rules
 
@@ -200,6 +203,12 @@ if prompt "Do you want to install utilities like bluetooth, printing, and batter
         sudo groupadd -f wheel
         sudo usermod -aG wheel "$USER"
         sudo systemctl restart polkit
+    fi
+
+    if prompt "Do you want to enable brightness permissions for the wheel user? This is necessary for brightness control."; then
+        echo "$UDEV_RULE" | sudo tee /etc/udev/rules.d/90-backlight.rules > /dev/null 2>&1
+        sudo udevadm control --reload
+        sudo udevadm trigger
     fi
 
     # printing
@@ -266,8 +275,6 @@ if prompt "Do you want to install user applications?"; then
         bluetui \
         gammastep \
         tealdeer \
-        ripgrep \
-        fd \
         mpv \
         yt-dlp \
         imv \
@@ -281,10 +288,12 @@ if prompt "Do you want to install user applications?"; then
         zathura-pdf-poppler \
         librewolf-bin \
         libreoffice-fresh \
+        freetube-bin \
         adw-gtk-theme \
 		qt6-wayland \
         picard \
-		calibre 
+		calibre \
+		htop
 
     if ! systemd_running NetworkManager.service; then
         sudo systemctl enable NetworkManager.service
