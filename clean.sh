@@ -37,13 +37,8 @@ if prompt "Do you want to remove xorg compatibility?"; then
     rm -rf ~/.xsession*
 fi
 
-if [ -f "$HOME/.dmrc" ]; then
-	if prompt "Do you want to perform cleanup of old init systems?"; then
-	    rm ~/.dmrc
-	fi
-fi
-
 if prompt "Do you want to hide unused programs from the application launcher?"; then
+	export PATH="$PATH:~/Env/scripts/"
     hide /usr/share/applications/org.pwmt.zathura.desktop
     hide /usr/share/applications/fish.desktop
     hide /usr/share/applications/bvnc.desktop

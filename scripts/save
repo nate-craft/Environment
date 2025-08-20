@@ -17,6 +17,7 @@ rsync -a --mkpath --ignore-missing-args ~/.config/electron-flags.conf ~/Env/user
 rsync -a --mkpath --ignore-missing-args ~/.config/tmux ~/Env/user/.config/
 rsync -a --mkpath --ignore-missing-args ~/.config/nvim ~/Env/user/.config/
 rsync -a --mkpath --ignore-missing-args ~/.config/helix ~/Env/user/.config/
+rsync -a --mkpath --ignore-missing-args ~/.config/foot ~/Env/user/.config/
 rsync -a --mkpath --ignore-missing-args ~/.config/yazi ~/Env/user/.config/
 rsync -a --mkpath --ignore-missing-args ~/.config/fish ~/Env/user/.config/
 rsync -a --mkpath --ignore-missing-args ~/.config/yt-dlp ~/Env/user/.config/
