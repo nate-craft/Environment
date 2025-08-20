@@ -58,6 +58,7 @@ rsync -a --mkpath --ignore-missing-args /etc/fonts/local.conf ~/Env/system/fonts
     cd ~/Env/
     git add .
     git commit -m "$(date --rfc-3339 s)"
+    git remote set-url origin git@github.com:nate-craft/Environment.git
     git push origin main
 )
  
