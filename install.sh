@@ -198,6 +198,7 @@ if prompt "Do you want to install utilities like bluetooth, brightness control, 
     # polkit rules
 
     if prompt "Do you want to enable bluetooth polkit permissions to enable quick start/stop?"; then
+        sudo systemctl disable bluetooth.service
         echo "$BLUETOOTH_RULE" | sudo tee "/etc/polkit-1/rules.d/30-bluetooth.rules" > /dev/null 2>&1
         echo "$RFKILL_RULE" | sudo tee "/etc/polkit-1/rules.d/40-rfkill.rules" > /dev/null 2>&1
         sudo groupadd -f wheel
