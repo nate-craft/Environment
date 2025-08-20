@@ -3,18 +3,18 @@
 ## Explanation
 
 This program is designed to take my personal environment from a remote repository or a local
-USB drive and install upon a base Arch Linux installation. This can then be backed up
+USB drive and install upon a **minimal** Arch Linux installation. This can then be backed up
 later to these same mediums with scripts in said environment. Because documents and music
 take up much disk space, they are only assumed to be accessible from a local USB drive.
 Details can be found in the `install.sh` script.
 
 ## Usage
 
-1. Install **base** Arch Linux from USB with the `archinstall` script.  
-  1A. Login to WiFi: `iwctl station wlan0 connect <network_name>`  
-  1B. Select `NetworkManager` as WiFi for new system  
+1. Install **minimal** Arch Linux from USB with the `archinstall` script.  
+  1A. Access wifi with: `iwctl station wlan0 connect <network_name>`.
+  1B. Make sure to select `NetworkManager` as wifi for new system .
 2. Reboot into system drive.
-3. Login to WiFi with `nmtui`
+3. Login to wifi with `nmtui`.
 4. Navigate to `Env` directory.  
   4A. `pacman -Syu git; git clone https://github.com/nate-craft/Environment`.  
   4B. Plug in USB drive containing `Env` and optionally any other backed up files.  
