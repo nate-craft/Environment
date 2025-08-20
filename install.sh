@@ -185,6 +185,9 @@ if prompt "Do you enable local data syncing?"; then
             rsync -a --mkpath --partial --ignore-missing-args --info=progress2 "$USB_MOUNT_DIR"/Documents ~/
             rsync -a --mkpath --partial --ignore-missing-args --info=progress2 "$USB_MOUNT_DIR"/Music ~/
             rsync -a --mkpath --partial --ignore-missing-args --info=progress2 "$USB_MOUNT_DIR"/Photos ~/
+            chmod -R 755 "$USB_MOUNT_DIR/Documents/"
+            chmod -R 755 "$USB_MOUNT_DIR/Music/"
+            chmod -R 755 "$USB_MOUNT_DIR/Photos/"
         else
             msg_err "USB ${USB} not available. Not syncing documents and music from remote drive"    
         fi        
