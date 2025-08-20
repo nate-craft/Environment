@@ -21,7 +21,7 @@ USB_MOUNT_DIR="/mnt/drive"
 #
 # For files, this script will attempt to copy the current directory filled with environmental data
 # to the given $ENV_DIR_NAME. The current directory must be the backup enviornment directory.
-# This is verified within the script. After, an attempt will be made to copy Music and Documents from
+# This is verified within the script. After, an attempt will be made to copy Music, Photos, and Documents from
 # the given $USB identifier
 
 # variables (do not touch)
@@ -90,11 +90,37 @@ if [ "$PWD" != "$ENV" ]; then
     fi    
 fi
 
-# git and basic dependencies
+# dependencies
 
 if ! prog_exists git || ! prog_exists ssh; then
     sudo pacman -S --needed git base-devel openssh
 fi
+
+# basics
+
+if ! prog_exists sway; then
+    sudo pacman -S --needed sway \
+        swayidle \
+        swaylock \
+        polkit \
+        foot \
+        wl-clipboard \
+        networkmanager \
+        tmux \
+        waybar \
+        man \
+        7zip \
+        unzip \
+        dunst \
+        slurp \
+        grim \
+        rofi-wayland \
+        jq \
+		helix \
+        libsixel
+fi
+
+# git
 
 if prompt "Do you want to configure your Git settings?"; then
     username="$(ask "What is your Git username?")"
@@ -235,15 +261,11 @@ if prompt "Do you want to install user applications?"; then
         rm -rf paru
     fi
     
-    paru -S --needed wl-clipboard \
-        tmux \
+    paru -S --needed \
         bluez \
         bluetui \
-        networkmanager \
         gammastep \
-        man \
         tealdeer \
-        unzip \
         ripgrep \
         fd \
         mpv \
@@ -253,22 +275,12 @@ if prompt "Do you want to install user applications?"; then
         chafa \
         shellcheck \
         pavucontrol \
-        swaylock \
-        libsixel \
-        dunst \
         gurk \
-        slurp \
         imagemagick \
-        waybar \
         zathura \
         zathura-pdf-poppler \
-        foot \
         librewolf-bin \
         libreoffice-fresh \
-        rofi-wayland \
-        7zip \
-        jq \
-		helix \
         adw-gtk-theme \
 		qt6-wayland \
         picard \

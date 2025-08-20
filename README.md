@@ -3,16 +3,20 @@
 ## Explanation
 
 This program is designed to take my personal environment from a remote repository or a local
-USB drive and install upon a standard Sway Arch Linux installation. This can then be backed up
+USB drive and install upon a base Arch Linux installation. This can then be backed up
 later to these same mediums with scripts in said environment. Because documents and music
 take up much disk space, they are only assumed to be accessible from a local USB drive.
 Details can be found in the `install.sh` script.
 
 ## Usage
 
-1. (Optional) Ensure USB drive is plugged in.
-2. Ensure the remote environment directory (USB or git cloned) is the current working directory.
-3. Run `./install.sh` and follow prompts.
+1. Install **base** Arch Linux from USB with the `archinstall` script.
+2. Reboot into system drive.
+3. Navigate to `Env` directory.
+  A. `pacman -Syu git; git clone https://github.com/nate-craft/Environment`.
+  B. Plug in USB drive containing `Env` and optionally any other backed up files.
+4. Ensure the remote environment directory (USB or git cloned) is the current working directory.
+5. Run `./install.sh` and follow prompts.
 
 ## Keymap
 
