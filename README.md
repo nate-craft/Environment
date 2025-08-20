@@ -10,13 +10,16 @@ Details can be found in the `install.sh` script.
 
 ## Usage
 
-1. Install **base** Arch Linux from USB with the `archinstall` script.
+1. Install **base** Arch Linux from USB with the `archinstall` script.  
+  1A. Login to WiFi: `iwctl station wlan0 connect <network_name>`  
+  1B. Select `NetworkManager` as WiFi for new system  
 2. Reboot into system drive.
-3. Navigate to `Env` directory.
-  A. `pacman -Syu git; git clone https://github.com/nate-craft/Environment`.
-  B. Plug in USB drive containing `Env` and optionally any other backed up files.
-4. Ensure the remote environment directory (USB or git cloned) is the current working directory.
-5. Run `./install.sh` and follow prompts.
+3. Login to WiFi with `nmtui`
+4. Navigate to `Env` directory.  
+  4A. `pacman -Syu git; git clone https://github.com/nate-craft/Environment`.  
+  4B. Plug in USB drive containing `Env` and optionally any other backed up files.  
+5. Ensure the remote environment directory (USB or git cloned) is the current working directory.
+6. Run `./install.sh` and follow prompts.
 
 ## Keymap
 
