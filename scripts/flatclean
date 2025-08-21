@@ -1,5 +1,12 @@
 #!/usr/bin/env sh
 
+. ~/Env/globals.sh
+
+if ! prog_exists flatpak; then
+    msg_err "Flatpak is not installed!"
+    exit 1
+fi
+
 INSTALLED="$(flatpak list --app --columns=application | grep -v "Application ID")"
 LOCAL_VAR_DIRS=$(ls ~/.var/app/)
 DELETED=""
@@ -19,8 +26,8 @@ if [ "$I" -gt 0 ]; then
         rm -rf ~/.var/app/"$DELETED_APP"
         rm -rf ~/.local/share/flatpak/app/"$DELETED_APP"
         sudo rm -rf /var/lib/flatpak/app/"$DELETED_APP"
-        printf "%s\n" "$DELETED_APP"
+        msg "$DELETED_APP"
     done
 else
-    printf "Flatpak directories cleaned!\n"
+    msg "Flatpak directories cleaned!"
 fi

@@ -1,5 +1,17 @@
 #!/usr/bin/env sh
 
+. ~/Env/globals.sh
+
+if ! prog_exists rofi; then
+    msg_err "Rofi is not installed!"
+    exit 1
+fi
+
+if ! prog_exists bc; then
+    msg_err "bc is not installed!"
+    exit 1
+fi
+
 INPUT=$(rofi -dmenu -theme calc)
 
 if $INPUT; then

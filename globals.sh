@@ -54,7 +54,19 @@ ask() {
 }
 
 msg_err() {
+    broadcast_flag="$1"
     args="$@"
+
+    if [ "$broadcast_flag" = "--broadcast" ]; then
+        shift
+        args="$@"
+        if prog_exists notify-send; then
+            notify-send -r 9999 "$args"
+        else
+            printf "%snotify-send is not installed!%s\n" "$RED" "$RESET"
+        fi
+    fi
+    
     printf "%s%s%s\n" "$RED" "$args" "$RESET"
 }
 

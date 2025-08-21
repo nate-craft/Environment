@@ -18,8 +18,11 @@ bindsym Ctrl+Shift+s exec "~/Env/scripts/search"
 
 bindsym Ctrl+Shift+b exec "~/Env/scripts/bookmark --copy"
 bindsym $mod+Shift+b exec "~/Env/scripts/bookmark --new"
-bindsym Print exec grim -g "$(slurp -d)" - | wl-copy
-bindsym Ctrl+Print exec "~/Env/scripts/capture_window"
+bindsym Print exec "~/Env/scripts/screenshot"
+bindsym Ctrl+Print exec "~/Env/scripts/screenshot --window"
+bindsym Shift+Print exec "~/Env/scripts/screenshot --save"
+bindsym Shift+Ctrl+Print exec "~/Env/scripts/screenshot --window --save"
+
 
 input "type:touchpad" {
       dwt enabled

@@ -1,15 +1,29 @@
 #!/usr/bin/env sh
 
-INPUT=$(rofi -dmenu -theme calc)
+. ~/Env/globals.sh
 
+if ! prog_exists rofi; then
+    msg_err --broadcast "Rofi is not installed!"
+    exit 1
+fi
+
+if [ -z "$BROWSER" ]; then
+    msg_err --broadcast "\$BROWSER environmental variable is not set!"
+    exit 1
+fi
+
+INPUT=$(rofi -dmenu -theme calc)
 [ -z "$INPUT" ] && exit 1
 
 if echo "$INPUT" | rg -q '^!'; then
-    librewolf "https://duckduckgo.com/?t=h_&q=${INPUT}&ia=web" & # shebang search
+    # shebang search
+    "$BROWSER" "https://duckduckgo.com/?t=h_&q=${INPUT}&ia=web" & 
 elif echo "$INPUT" | rg -q '^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(/.*)?$'; then
-    librewolf "$INPUT" & # exact url
+    # exact url
+    "$BROWSER" "$INPUT" & 
 else
-    librewolf "https://duckduckgo.com/?t=h_&q=${INPUT}&ia=web" & # search query
+    # search query
+    "$BROWSER" "https://duckduckgo.com/?t=h_&q=${INPUT}&ia=web" & 
 fi 2>&1
 
 

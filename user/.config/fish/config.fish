@@ -1,39 +1,41 @@
 #!/usr/bin/env fish
 
 # Path
+
 set -gx PATH $PATH $HOME/Env/scripts
 set -gx PATH $PATH $HOME/.local/bin
 set -gx PATH $PATH $CARGO_HOME/bin/
 set -gx PATH $PATH $JAVA_HOME/bin/
 
-set -gx EDITOR helix
-set -gx SHELL fish
-set -gx TERMINAL foot
-set -gx visual $EDITOR
-set -gx PAGER 'bat --paging=always'
-set -gx ELECTRON_OZONE_PLATFORM_HINT wayland
-set -gx JAVA_HOME /usr/lib/jvm/java-24-openjdk
-set -gx _JAVA_AWT_WM_NONREPARENTING 1
+set -Ux EDITOR helix
+set -Ux BROWSER librewolf
+set -Ux SHELL fish
+set -Ux TERMINAL foot
+set -Ux visual $EDITOR
+set -Ux PAGER 'bat --paging=always'
+set -Ux ELECTRON_OZONE_PLATFORM_HINT wayland
+set -Ux JAVA_HOME /usr/lib/jvm/java-24-openjdk
+set -Ux _JAVA_AWT_WM_NONREPARENTING 1
 
 # XDG
 
-set -gx XDG_CURRENT_DESKTOP sway
-set -gx XDG_CONFIG_HOME "$HOME/.config"
-set -gx XDG_DATA_HOME "$HOME/.local/share"
+set -Ux XDG_CURRENT_DESKTOP sway
+set -Ux XDG_CONFIG_HOME "$HOME/.config"
+set -Ux XDG_DATA_HOME "$HOME/.local/share"
 
 # Config
 
-set -gx MYVIMRC "$XDG_CONFIG_HOME/nvim/init.lua"
-set -gx ZDOTDIR "$XDG_CONFIG_HOME/zsh"
-set -gx TMUX_CONF "$XDG_CONFIG_HOME/tmux/tmux.conf"
-set -gx GNUPGHOME "$XDG_CONFIG_HOME/gnupg"
-set -gx PKIHOME "$XDG_CONFIG_HOME/pki"
-set -gx RUSTUP_HOME "$XDG_DATA_HOME/rustup"
-set -gx CARGO_HOME "$XDG_DATA_HOME/cargo"
+set -Ux MYVIMRC "$XDG_CONFIG_HOME/nvim/init.lua"
+set -Ux ZDOTDIR "$XDG_CONFIG_HOME/zsh"
+set -Ux TMUX_CONF "$XDG_CONFIG_HOME/tmux/tmux.conf"
+set -Ux GNUPGHOME "$XDG_CONFIG_HOME/gnupg"
+set -Ux PKIHOME "$XDG_CONFIG_HOME/pki"
+set -Ux RUSTUP_HOME "$XDG_DATA_HOME/rustup"
+set -Ux CARGO_HOME "$XDG_DATA_HOME/cargo"
 
 # Rust Environment 
 
-test -f /usr/bin/sccache; and set -gx RUSTC_WRAPPER sccache
+test -f /usr/bin/sccache; and set -Ux RUSTC_WRAPPER sccache
 
 # Sway Launch
 

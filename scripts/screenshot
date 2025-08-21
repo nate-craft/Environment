@@ -1,0 +1,46 @@
+#!/usr/bin/env sh
+
+. ~/Env/globals.sh
+
+if ! prog_exists grim; then
+    msg_err --broadcast "grim is not installed!"
+    exit 1
+fi
+
+if ! prog_exists jq; then
+    msg_err --broadcast "jq is not installed!"
+    exit 1
+fi
+
+if ! prog_exists wl-copy; then
+    msg_err --broadcast "wl-copy is not installed!"
+    exit 1
+fi
+
+OUTPUT_FILE=~/Photos/Screenshots/"$(date '+%Y-%m-%d+%H:%m:%S')".png
+
+if [ "$1" = "--window" ]; then
+    if [ "$2" = "--save" ]; then
+        mkdir -p ~/Photos/Screenshots
+        (grim -g "$(swaymsg -t get_tree | jq -r ".. | select(.focused?) | .rect | \"\(.x),\(.y) \(.width)x\(.height)\"")" \
+            "$OUTPUT_FILE") || exit 0
+        wl-copy < "$OUTPUT_FILE"
+        notify-send -r 9999 "Window captured"
+    else
+        (grim -g "$(swaymsg -t get_tree | jq -r ".. | select(.focused?) | .rect | \"\(.x),\(.y) \(.width)x\(.height)\"")" - ) \
+            || exit 0 | wl-copy
+        notify-send -r 9999 "Window captured to clipboard"
+    fi
+else
+    if [ "$1" = "--save" ]; then
+        mkdir -p ~/Photos/Screenshots
+        (grim -g "$(slurp -d)" "$OUTPUT_FILE") || exit 0
+        wl-copy < "$OUTPUT_FILE"
+        notify-send -r 9999 "Screenshot captured"
+    else
+        (grim -g "$(slurp -d)" - || exit 0) | wl-copy
+        wl-copy < "$OUTPUT_FILE"
+        notify-send -r 9999 "Screenshot captured to clipboard"
+    fi
+fi
+
