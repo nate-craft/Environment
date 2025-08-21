@@ -18,10 +18,10 @@ if ! prog_exists wl-copy; then
 fi
 
 OUTPUT_FILE=~/Photos/Screenshots/"$(date '+%Y-%m-%d+%H:%m:%S')".png
+mkdir -p ~/Photos/Screenshots
 
 if [ "$1" = "--window" ]; then
     if [ "$2" = "--save" ]; then
-        mkdir -p ~/Photos/Screenshots
         (grim -g "$(swaymsg -t get_tree | jq -r ".. | select(.focused?) | .rect | \"\(.x),\(.y) \(.width)x\(.height)\"")" \
             "$OUTPUT_FILE") || exit 0
         wl-copy < "$OUTPUT_FILE"
@@ -33,14 +33,13 @@ if [ "$1" = "--window" ]; then
     fi
 else
     if [ "$1" = "--save" ]; then
-        mkdir -p ~/Photos/Screenshots
         (grim -g "$(slurp -d)" "$OUTPUT_FILE") || exit 0
         wl-copy < "$OUTPUT_FILE"
         notify-send -r 9999 "Screenshot captured"
     else
         (grim -g "$(slurp -d)" - || exit 0) | wl-copy
-        wl-copy < "$OUTPUT_FILE"
         notify-send -r 9999 "Screenshot captured to clipboard"
     fi
+
 fi
 

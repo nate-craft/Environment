@@ -21,8 +21,7 @@ bindsym $mod+Shift+b exec "~/Env/scripts/bookmark --new"
 bindsym Print exec "~/Env/scripts/screenshot"
 bindsym Ctrl+Print exec "~/Env/scripts/screenshot --window"
 bindsym Shift+Print exec "~/Env/scripts/screenshot --save"
-bindsym Shift+Ctrl+Print exec "~/Env/scripts/screenshot --window --save"
-
+bindsym Ctrl+Shift+Print exec "~/Env/scripts/screenshot --window --save"
 
 input "type:touchpad" {
       dwt enabled
