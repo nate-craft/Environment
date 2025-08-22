@@ -2,43 +2,141 @@
 
 . ~/Env/globals.sh
 
+GENRES=""
+
 help() {
     printf "\n"
     help_title "Music Player"
     help_content "Usage:"
+    help_content "    play --cache                   Caches genres for future searching"
     help_content "    play /path/to/song.mp3         Plays songs by exact path"
-    help_content "    play \"query\"                   Plays songs by song title query"
-    help_content "    play --artist \"query\"          plays songs by artist name query"
+    help_content "    play --shuffle                 Plays all songs shuffled"
+    help_content "    play \"query\"                   Plays songs matching song title query"
+    help_content "    play --artist \"query\"          Plays songs matching artist name query"
+    help_content "    play --genre \"query\"           Plays songs matching multi genre query"
+    help_content "    play --no-genre \"query\"        Plays songs not matching multi genre query"
     printf "\n"
 }
+
+get_genre() {
+    ffmpeg -hide_banner -v error -i "$1" -f ffmetadata - 2>/dev/null | rg genre | cut -d "=" -f2
+}
+
+has_genre() {
+    genre=$(get_genre $1)
+    echo "$genre" | rg -qi "$2"
+}
+
+get_genre_cached() {
+    echo "$GENRES" | rg -i "$1" | cut -d "=" -f2
+}
+
+has_genre_cached() {
+    genre=$(get_genre_cached "$1")
+    if [ -z "$genre" ]; then
+        genre=$(get_genre "$1")
+    fi
+    echo "$genre" | rg -qi "$2"
+}
+
+if ! prog_exists mpv; then
+    msg_err "mpv is not installed!"
+    exit 1
+fi
+
+if ! prog_exists fd; then
+    msg_err "fd is not installed!"
+    exit 1
+fi
+
+if [ ! -d ~/Music ]; then
+    msg_err "~/Music does not exist!"
+    exit 1
+fi
 
 if [ -z "$1" ] || [ "$1" = "--help" ]; then
     help
     exit 1
 fi
 
+if [ "$1" = "--cache" ] || { ! [ -f ~/Env/cache/play.txt ] && { [ "$1" = "--genre" ] || [ "$1" == "--no-genre" ] ;} ;}; then
+    all=$(fd -e "mp3" . ~/Music/)
+
+    if [ -f ~/Env/cache/play.txt ] && ! prompt "Cache file already exists. Are you sure you want to regenerate?"; then
+        exit 0
+    fi
+    
+    mkdir -p ~/Env/cache/
+    rm ~/Env/cache/play.txt
+    touch ~/Env/cache/play.txt
+    count=$(echo "$all" | wc -l)
+    i=0
+
+    while read -r path; do
+        genre=$(get_genre "$path")
+        printf "Caching %s (%s/%s)\n" "$(basename "${path}")" "$i" "$count"
+        i=$((i + 1))
+        printf "%s=%s\n" "$path" "$genre" >> ~/Env/cache/play.txt
+    done <<EOF
+$all
+EOF
+
+    msg "Genres cached!"
+    if [ "$1" = "--cache" ]; then
+        exit 0
+    fi    
+fi
+
+GENRES=$(bat ~/Env/cache/play.txt)
+# echo "$GENRES"
+
 if [ -f "$1" ]; then
     clear
     mpv --no-video "$1"
+elif [ "$1" = "--shuffle" ]; then
+    mpv --no-video --shuffle ~/Music --no-resume-playback --display-tags-clr --msg-level=all=no
 else
     search="$1"
     if [ "$1" = "--artist" ]; then
         results=$(fd --type directory "$2" ~/Music/)
         search="$2"
-    else 
+    elif [ "$1" != "--genre" ] && [ "$1" != "--no-genre" ];then
         results=$(fd "$1" ~/Music/)
+        search="$2"
+    elif [ "$1" = "--genre" ] || [ "$1" = "-no-genre" ]; then
+        results=$(fd . ~/Music/)
+        search="$2"
+    else
+        results=$(fd . ~/Music/)
     fi
 
     if [ "$results" != "" ]; then
         mpv_args=""
+
+        if [ "$1" = "--genre" ] || [ "$1" == "--no-genre" ]; then
+            msg "Searching with a genre query. This may take a moment..."
+        fi
+
         while read -r line; do
-            if [ "$1" = "--artist" ] && [ -d "$line" ] || [ -f "$line" ]; then
-                mpv_args="${mpv_args} \"${line}\""
-                echo "here"
+            if [ "$1" = "--artist" ] && ! [ -d "$line" ]; then
+                continue
+            elif [ "$1" = "--genre" ]; then
+                if ! [ -f "$line" ] || ! has_genre_cached "$line" "$2"; then
+                    continue
+                fi
+            elif [ "$1" = "--no-genre" ]; then
+                if ! [ -f "$line" ] || has_genre_cached "$line" "$2"; then
+                    continue
+                fi                
+            elif ! [ -f "$line" ]; then
+                continue
             fi
+
+            mpv_args="${mpv_args} \"${line}\""            
         done <<EOF
 $results
 EOF
+        
         if [ "$mpv_args" != "" ]; then
             clear
             printf "%s" "$mpv_args" | xargs mpv --no-video --no-resume-playback --display-tags-clr --msg-level=all=no

@@ -23,8 +23,9 @@ Details can be found in the `install.sh` script.
 
 ## Keymap
 
-L-Ctrl and L-Alt are swapped. All mentions below will reference where the keys appear in person,
-not to the system (e.g., Alt+B refers to pressing the Alt, then B).
+In my sway configuration, L-Ctrl and L-Alt are swapped. The keymapping below
+shows what is actually being pressed, but this may appear differently in the
+sway configuration file when examined.
 
 ### Navigation
 

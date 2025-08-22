@@ -295,6 +295,7 @@ if prompt "Do you want to install user applications?"; then
         freetube-bin \
         adw-gtk-theme \
 		qt6-wayland \
+        qt5-wayland \
         picard \
 		calibre \
 		htop

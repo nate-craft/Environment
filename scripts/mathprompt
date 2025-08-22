@@ -12,13 +12,17 @@ if ! prog_exists bc; then
     exit 1
 fi
 
-INPUT=$(rofi -dmenu -theme calc)
+if [ -z "$1" ]; then
+    INPUT=$(rofi -dmenu -theme calc)
+else
+    INPUT=$(rofi -dmenu -theme calc -theme-str "entry {placeholder:'   [$1: clipboard]';}")
+fi
 
-if $INPUT; then
+if [ -z "$INPUT" ]; then
     exit 0
 fi
 
-RESULT=$(echo "scale=3;$INPUT" | bc --standard 2>&1)
+RESULT=$(echo "scale=3;$INPUT" | bc -l --standard 2>&1)
 CHARS=$(echo "$INPUT" | wc -m)
 
 if echo "$RESULT" | rg -q "Error" || [ "$CHARS" -lt 3 ]; then
@@ -26,7 +30,12 @@ if echo "$RESULT" | rg -q "Error" || [ "$CHARS" -lt 3 ]; then
 elif echo "$RESULT" | rg -q "error"; then
     notify-send -r 9999 "Bad Syntax: '${INPUT}'"
 else
-    notify-send -r 9999 "${RESULT}"
-    wl-copy "$RESULT"
+    if prog_exists wl-copy; then
+        echo "$RESULT" | wl-copy 
+    else
+        msg_err --broadcast "wl-copy is not installed - clipboard not enabled!"
+    fi
+
+    ~/Env/scripts/mathprompt "$RESULT"
 fi
 
