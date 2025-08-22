@@ -2,7 +2,45 @@
 
 . ~/Env/globals.sh
 
-GENRES=""
+# Configurable Variables
+ 
+CACHE_DIR="$HOME/.cache/env/"
+CACHE_PATH="$HOME/.cache/env/play.txt"
+MUSIC_DIR="$HOME/Music"
+
+# Program Check
+
+if ! prog_exists mpv; then
+    msg_err "mpv is not installed!"
+    exit 1
+fi
+
+if ! prog_exists fd; then
+    msg_err "fd is not installed!"
+    exit 1
+fi
+
+if ! prog_exists ffmpeg; then
+    msg_err "ffmpeg is not installed!"
+    exit 1
+fi
+
+if ! prog_exists rg; then
+    msg_err "rg is not installed!"
+    exit 1
+fi
+
+# Global Variables
+
+SONGS_ALL="$(fd --type file . ${MUSIC_DIR})"
+GENRE_MAP=""
+SONGS=""
+QUERY_STR=""
+FILTER_GENRE=""
+FILTER_NO_GENRE=""
+FILTER_ARTIST=""
+
+# Functions
 
 help() {
     printf "\n"
@@ -18,17 +56,25 @@ help() {
     printf "\n"
 }
 
+append_query_str() {
+    if [ -z "$QUERY_STR" ]; then
+        QUERY_STR="${1}"
+    else
+        QUERY_STR="${QUERY_STR}, ${1}"
+    fi
+}
+
 get_genre() {
-    ffmpeg -hide_banner -v error -i "$1" -f ffmetadata - 2>/dev/null | rg genre | cut -d "=" -f2
+    ffmpeg -hide_banner -v error -i "$1" -f ffmetadata - 2>/dev/null | rg -si genre | cut -d "=" -f2
 }
 
 has_genre() {
-    genre=$(get_genre $1)
+    genre=$(get_genre "$1")
     echo "$genre" | rg -qi "$2"
 }
 
 get_genre_cached() {
-    echo "$GENRES" | rg -i "$1" | cut -d "=" -f2
+    echo "$GENRE_MAP" | rg -i "$1" | cut -d "=" -f2
 }
 
 has_genre_cached() {
@@ -39,114 +85,154 @@ has_genre_cached() {
     echo "$genre" | rg -qi "$2"
 }
 
-if ! prog_exists mpv; then
-    msg_err "mpv is not installed!"
-    exit 1
-fi
-
-if ! prog_exists fd; then
-    msg_err "fd is not installed!"
-    exit 1
-fi
-
-if [ ! -d ~/Music ]; then
-    msg_err "~/Music does not exist!"
-    exit 1
-fi
-
-if [ -z "$1" ] || [ "$1" = "--help" ]; then
-    help
-    exit 1
-fi
-
-if [ "$1" = "--cache" ] || { ! [ -f ~/Env/cache/play.txt ] && { [ "$1" = "--genre" ] || [ "$1" == "--no-genre" ] ;} ;}; then
-    all=$(fd -e "mp3" . ~/Music/)
-
-    if [ -f ~/Env/cache/play.txt ] && ! prompt "Cache file already exists. Are you sure you want to regenerate?"; then
-        exit 0
+cache() {
+    if [ -f "$CACHE_PATH" ]; then
+        if [ "$1" = "--auto" ] || ! prompt "Cache file already exists. Are you sure you want to regenerate?"; then
+            return 0
+        fi
     fi
+
+    msg "Generating genre cache. This may take a moment..."
     
-    mkdir -p ~/Env/cache/
-    rm ~/Env/cache/play.txt
-    touch ~/Env/cache/play.txt
-    count=$(echo "$all" | wc -l)
+    mkdir -p "$CACHE_DIR"
+    rm -f "$CACHE_PATH"
+    touch "$CACHE_PATH"
+    count=$(echo "$SONGS_ALL" | wc -l)
     i=0
 
     while read -r path; do
         genre=$(get_genre "$path")
         printf "Caching %s (%s/%s)\n" "$(basename "${path}")" "$i" "$count"
         i=$((i + 1))
-        printf "%s=%s\n" "$path" "$genre" >> ~/Env/cache/play.txt
+        printf "%s=%s\n" "$path" "$genre" >> "$CACHE_PATH"
     done <<EOF
-$all
+$SONGS_ALL
 EOF
 
     msg "Genres cached!"
     if [ "$1" = "--cache" ]; then
         exit 0
     fi    
-fi
+}
 
-GENRES=$(bat ~/Env/cache/play.txt)
-# echo "$GENRES"
-
-if [ -f "$1" ]; then
-    clear
-    mpv --no-video "$1"
-elif [ "$1" = "--shuffle" ]; then
-    mpv --no-video --shuffle ~/Music --no-resume-playback --display-tags-clr --msg-level=all=no
-else
-    search="$1"
-    if [ "$1" = "--artist" ]; then
-        results=$(fd --type directory "$2" ~/Music/)
-        search="$2"
-    elif [ "$1" != "--genre" ] && [ "$1" != "--no-genre" ];then
-        results=$(fd "$1" ~/Music/)
-        search="$2"
-    elif [ "$1" = "--genre" ] || [ "$1" = "-no-genre" ]; then
-        results=$(fd . ~/Music/)
-        search="$2"
+play() {
+    if ! [ -z "$SONGS" ]; then
+        clear
+        printf "%s" "$SONGS" | xargs mpv --no-video --no-resume-playback --display-tags-clr --msg-level=all=no
     else
-        results=$(fd . ~/Music/)
-    fi
-
-    if [ "$results" != "" ]; then
-        mpv_args=""
-
-        if [ "$1" = "--genre" ] || [ "$1" == "--no-genre" ]; then
-            msg "Searching with a genre query. This may take a moment..."
-        fi
-
-        while read -r line; do
-            if [ "$1" = "--artist" ] && ! [ -d "$line" ]; then
-                continue
-            elif [ "$1" = "--genre" ]; then
-                if ! [ -f "$line" ] || ! has_genre_cached "$line" "$2"; then
-                    continue
-                fi
-            elif [ "$1" = "--no-genre" ]; then
-                if ! [ -f "$line" ] || has_genre_cached "$line" "$2"; then
-                    continue
-                fi                
-            elif ! [ -f "$line" ]; then
-                continue
-            fi
-
-            mpv_args="${mpv_args} \"${line}\""            
-        done <<EOF
-$results
-EOF
-        
-        if [ "$mpv_args" != "" ]; then
-            clear
-            printf "%s" "$mpv_args" | xargs mpv --no-video --no-resume-playback --display-tags-clr --msg-level=all=no
-        else
-            msg_err "No songs by the search query \"${search}\" could be found"
-            help
-        fi
-    else
-        msg_err "No song by the name \"${search}\" could be found"
+        msg_err "No songs with the search query \"${QUERY_STR}\" could be found"
         help
     fi
+}
+
+filter() {
+    IFS_SAVED="$IFS"
+
+    if ! [ -z "$FILTER_GENRE" ] || ! [ -z "$FILTER_NO_GENRE" ]; then
+        msg "Filtering genres. This may take a moment..."
+    fi
+
+    while read -r song; do
+        if ! [ -z "$FILTER_ARTIST" ]; then
+            IFS=","
+            for query in $FILTER_ARTIST; do
+                if ! rg -qi "$query" "$song"; then
+                    IFS="$IFS_SAVED"
+                    continue 2
+                fi
+            done
+            IFS="$IFS_SAVED"
+        fi
+
+    
+        if ! [ -z "$FILTER_GENRE" ]; then
+            IFS=","
+            for query in $FILTER_GENRE; do
+                if ! has_genre_cached "$song" "$query"; then
+                    IFS="$IFS_SAVED"
+                    continue 2
+                fi
+            done
+            IFS="$IFS_SAVED"
+        fi
+
+        if ! [ -z "$FILTER_NO_GENRE" ]; then
+            IFS=","
+            for query in $FILTER_NO_GENRE; do
+                if has_genre_cached "$song" "$query"; then
+                    IFS="$IFS_SAVED"
+                    continue 2
+                fi
+            done
+            IFS="$IFS_SAVED"
+        fi    
+    
+        SONGS="${SONGS} \"${song}\""
+
+    done <<EOF
+$SONGS_ALL
+EOF
+}
+
+# Flow
+
+if [ ! -d "$MUSIC_DIR" ]; then
+    msg_err "${MUSIC_DIR} does not exist!"
+    exit 1
 fi
 
+if [ -z "$1" ]; then
+    help
+    exit 1
+fi
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -h|--help)
+			help
+			exit 0
+            ;;
+        -c|--cache)
+            cache
+            exit 0
+            ;;
+        -a|--artist)
+            append_query_str "artist(${2})"
+            FILTER_ARTIST="${FILTER_ARTIST},${2}"
+            shift 2
+            ;;
+        -g|--genre)
+            cache --auto
+            GENRE_MAP=$(bat "$CACHE_PATH")
+            append_query_str "genre(${2})"
+            FILTER_GENRE="${FILTER_GENRE},${2}"
+            shift 2
+            ;;
+        -n|--no-genre)
+            cache --auto
+            GENRE_MAP=$(bat "$CACHE_PATH")
+            append_query_str "not_genre(${2})"
+            FILTER_NO_GENRE="${FILTER_NO_GENRE},${2}"
+            shift 2
+            ;;
+        -s|--shuffle)
+            mpv --no-video --shuffle "$MUSIC_DIR" --no-resume-playback --display-tags-clr --msg-level=all=no
+            exit 0
+            ;;
+        *)
+            SONGS_ALL="$(fd --type file ${1} ${MUSIC_DIR})"
+            append_query_str "$1"
+
+            if [ -f "$1" ]; then
+                SONGS="${SONGS} \"${1}\""
+                play
+                exit 0
+            else
+                shift
+            fi
+            ;;
+    esac
+done
+
+filter
+play
